@@ -10,14 +10,15 @@ class Settings(BaseSettings):
     database_name: str = "hrms_lite"
     cors_origins: str = '["http://localhost:5173"]'
     
-    @property
-    def cors_origins_list(self) -> List[str]:
-        """Parse CORS origins from JSON string to list."""
-        return json.loads(self.cors_origins)
-    
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8"
+    }
 
 
 settings = Settings()
+
+
+def get_cors_origins() -> List[str]:
+    """Parse CORS origins from JSON string to list."""
+    return json.loads(settings.cors_origins)
