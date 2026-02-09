@@ -20,5 +20,27 @@ settings = Settings()
 
 
 def get_cors_origins() -> List[str]:
-    """Parse CORS origins from JSON string to list."""
-    return json.loads(settings.cors_origins)
+    """Parse CORS origins from environment variable.
+    
+    Supports multiple formats:
+    - JSON array: '["http://example.com", "http://other.com"]'
+    - Comma-separated: 'http://example.com,http://other.com'
+    - Single URL: 'http://example.com'
+    - Wildcard: '*' (allows all origins)
+    """
+    origins_str = settings.cors_origins.strip()
+    
+    # Handle wildcard
+    if origins_str == "*":
+        return ["*"]
+    
+    # Try JSON parsing first
+    if origins_str.startswith("["):
+        try:
+            return json.loads(origins_str)
+        except json.JSONDecodeError:
+            pass
+    
+    # Fall back to comma-separated
+    origins = [origin.strip().strip('"').strip("'") for origin in origins_str.split(",")]
+    return [o for o in origins if o]  # Filter out empty strings
