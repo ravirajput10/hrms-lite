@@ -30,17 +30,25 @@ def get_cors_origins() -> List[str]:
     """
     origins_str = settings.cors_origins.strip()
     
-    # Handle wildcard
-    if origins_str == "*":
+    # Log for debugging
+    print(f"CORS_ORIGINS raw value: '{origins_str}'")
+    
+    # Handle wildcard or empty (default to wildcard for production safety)
+    if origins_str == "*" or not origins_str:
+        print("Using wildcard CORS origins")
         return ["*"]
     
     # Try JSON parsing first
     if origins_str.startswith("["):
         try:
-            return json.loads(origins_str)
-        except json.JSONDecodeError:
-            pass
+            result = json.loads(origins_str)
+            print(f"Parsed CORS origins (JSON): {result}")
+            return result
+        except json.JSONDecodeError as e:
+            print(f"JSON parse error: {e}")
     
     # Fall back to comma-separated
     origins = [origin.strip().strip('"').strip("'") for origin in origins_str.split(",")]
-    return [o for o in origins if o]  # Filter out empty strings
+    result = [o for o in origins if o]  # Filter out empty strings
+    print(f"Parsed CORS origins (comma-separated): {result}")
+    return result if result else ["*"]
