@@ -1,0 +1,22 @@
+{
+    "name": "hrms-lite",
+    "version": "1.0.0",
+    "private": true,
+    "description": "A lightweight Human Resource Management System",
+    "workspaces": [
+        "frontend"
+    ],
+    "scripts": {
+        "frontend:dev": "npm run dev --workspace=frontend",
+        "frontend:build": "npm run build --workspace=frontend",
+        "frontend:preview": "npm run preview --workspace=frontend"
+    },
+    "keywords": [
+        "hrms",
+        "hr",
+        "employee-management",
+        "attendance"
+    ],
+    "author": "",
+    "license": "MIT"
+}
