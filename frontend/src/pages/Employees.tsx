@@ -34,7 +34,6 @@ import type { Employee } from '../types';
 
 // Form validation schema
 const employeeSchema = z.object({
-    employee_id: z.string().min(1, 'Employee ID is required').max(50),
     full_name: z.string().min(1, 'Full name is required').max(100),
     email: z.string().email('Invalid email address'),
     department: z.string().min(1, 'Department is required').max(50),
@@ -54,7 +53,6 @@ export function Employees() {
     const form = useForm<EmployeeFormData>({
         resolver: zodResolver(employeeSchema),
         defaultValues: {
-            employee_id: '',
             full_name: '',
             email: '',
             department: '',
@@ -106,21 +104,10 @@ export function Employees() {
                         <DialogHeader>
                             <DialogTitle>Add New Employee</DialogTitle>
                             <DialogDescription>
-                                Fill in the details to add a new employee to the system.
+                                Fill in the details to add a new employee. An ID will be auto-generated.
                             </DialogDescription>
                         </DialogHeader>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="employee_id">Employee ID</Label>
-                                <Input
-                                    id="employee_id"
-                                    placeholder="EMP001"
-                                    {...form.register('employee_id')}
-                                />
-                                {form.formState.errors.employee_id && (
-                                    <p className="text-sm text-red-500">{form.formState.errors.employee_id.message}</p>
-                                )}
-                            </div>
                             <div className="space-y-2">
                                 <Label htmlFor="full_name">Full Name</Label>
                                 <Input

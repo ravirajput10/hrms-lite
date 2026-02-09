@@ -5,7 +5,6 @@ from datetime import datetime
 
 class EmployeeCreate(BaseModel):
     """Schema for creating a new employee."""
-    employee_id: str = Field(..., min_length=1, max_length=50, description="Unique employee ID")
     full_name: str = Field(..., min_length=1, max_length=100, description="Employee full name")
     email: EmailStr = Field(..., description="Valid email address")
     department: str = Field(..., min_length=1, max_length=50, description="Department name")
@@ -13,13 +12,13 @@ class EmployeeCreate(BaseModel):
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
-                "employee_id": "EMP001",
                 "full_name": "John Doe",
                 "email": "john.doe@company.com",
                 "department": "Engineering"
             }
         }
     )
+
 
 
 class EmployeeResponse(BaseModel):
