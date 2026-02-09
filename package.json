@@ -8,8 +8,8 @@
     ],
     "scripts": {
         "frontend:dev": "npm run dev --workspace=frontend",
-        "frontend:build": "npm run build --workspace=frontend",
-        "frontend:preview": "npm run preview --workspace=frontend"
+        "backend:dev": "cd backend && .\\venv\\Scripts\\python.exe -m uvicorn app.main:app --reload --port 8000",
+        "dev": "concurrently \"npm run frontend:dev\" \"npm run backend:dev\""
     },
     "keywords": [
         "hrms",
@@ -18,5 +18,8 @@
         "attendance"
     ],
     "author": "",
-    "license": "MIT"
+    "license": "MIT",
+    "devDependencies": {
+        "concurrently": "^9.2.1"
+    }
 }
