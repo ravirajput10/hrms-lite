@@ -34,25 +34,15 @@ async def get_all_employees():
 @router.post("", response_model=EmployeeResponse, status_code=status.HTTP_201_CREATED)
 async def create_employee(employee: EmployeeCreate):
     """Create a new employee."""
+    import random
     collection = get_employees_collection()
     
-    # Auto-generate employee_id
-    # Find the highest existing employee number
-    pipeline = [
-        {"$match": {"employee_id": {"$regex": r"^EMP-\d+$"}}},
-        {"$project": {
-            "num": {"$toInt": {"$substr": ["$employee_id", 4, -1]}}
-        }},
-        {"$sort": {"num": -1}},
-        {"$limit": 1}
-    ]
-    
-    last_emp = None
-    async for doc in collection.aggregate(pipeline):
-        last_emp = doc
-    
-    next_num = (last_emp["num"] + 1) if last_emp else 1
-    employee_id = f"EMP-{next_num:04d}"
+    # Auto-generate unique employee_id (6-digit random number)
+    while True:
+        employee_id = str(random.randint(100000, 999999))
+        existing = await collection.find_one({"employee_id": employee_id})
+        if not existing:
+            break
     
     # Check for duplicate email
     existing_email = await collection.find_one({"email": employee.email})
@@ -61,6 +51,7 @@ async def create_employee(employee: EmployeeCreate):
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Employee with email '{employee.email}' already exists"
         )
+
     
     # Create employee document
     employee_doc = {
