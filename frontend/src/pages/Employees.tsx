@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, Mail, Building2, User, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Mail, Building2, User, AlertCircle, BarChart3 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -29,6 +29,7 @@ import {
 import { Alert, AlertDescription } from '../components/ui/alert';
 
 import { useEmployees, useCreateEmployee, useDeleteEmployee } from '../hooks/useEmployees';
+import { useAttendanceSummary } from '../hooks/useAttendance';
 import type { Employee } from '../types';
 
 // Form validation schema
@@ -44,6 +45,7 @@ type EmployeeFormData = z.infer<typeof employeeSchema>;
 export function Employees() {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [deleteEmployee, setDeleteEmployee] = useState<Employee | null>(null);
+    const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
 
     const { data, isLoading, error } = useEmployees();
     const createMutation = useCreateEmployee();
@@ -236,14 +238,26 @@ export function Employees() {
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-right">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                                onClick={() => setDeleteEmployee(employee)}
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
+                                            <div className="flex items-center justify-end gap-2">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                                    onClick={() => setSelectedEmployeeId(employee.employee_id)}
+                                                    title="View Attendance Summary"
+                                                >
+                                                    <BarChart3 className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                    onClick={() => setDeleteEmployee(employee)}
+                                                    title="Delete Employee"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -277,6 +291,92 @@ export function Employees() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+            {/* Attendance Summary Dialog */}
+            <AttendanceSummaryDialog
+                employeeId={selectedEmployeeId}
+                onClose={() => setSelectedEmployeeId(null)}
+            />
         </div>
+    );
+}
+
+function AttendanceSummaryDialog({ employeeId, onClose }: { employeeId: string | null; onClose: () => void }) {
+    const { data: summary, isLoading } = useAttendanceSummary(employeeId || '');
+
+    const totalDays = summary ? summary.total_present + summary.total_absent : 0;
+    const attendancePercentage = totalDays > 0
+        ? Math.round((summary!.total_present / totalDays) * 100)
+        : 0;
+
+    return (
+        <Dialog open={!!employeeId} onOpenChange={(open: boolean) => !open && onClose()}>
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>Attendance Summary</DialogTitle>
+                    <DialogDescription>
+                        Overview for {summary?.employee_name || 'Employee'}
+                    </DialogDescription>
+                </DialogHeader>
+
+                {isLoading ? (
+                    <div className="py-8 flex justify-center">
+                        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+                    </div>
+                ) : summary ? (
+                    <div className="py-4 space-y-6">
+                        <div className="flex justify-center">
+                            <div className="relative h-32 w-32 flex items-center justify-center">
+                                <svg className="h-full w-full" viewBox="0 0 36 36">
+                                    <circle
+                                        cx="18"
+                                        cy="18"
+                                        r="16"
+                                        fill="none"
+                                        className="stroke-slate-100"
+                                        strokeWidth="3.5"
+                                    />
+                                    <circle
+                                        cx="18"
+                                        cy="18"
+                                        r="16"
+                                        fill="none"
+                                        className="stroke-blue-600"
+                                        strokeWidth="3.5"
+                                        strokeDasharray={`${attendancePercentage}, 100`}
+                                        strokeLinecap="round"
+                                        transform="rotate(-90 18 18)"
+                                    />
+                                </svg>
+                                <div className="absolute text-center">
+                                    <span className="text-2xl font-bold text-slate-900">{attendancePercentage}%</span>
+                                    <p className="text-[10px] text-slate-500 uppercase tracking-wider">Present</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-green-50 p-4 rounded-xl border border-green-100 text-center">
+                                <p className="text-sm text-green-600 font-medium">Present</p>
+                                <p className="text-2xl font-bold text-green-700">{summary.total_present}</p>
+                                <p className="text-xs text-green-500">Days</p>
+                            </div>
+                            <div className="bg-red-50 p-4 rounded-xl border border-red-100 text-center">
+                                <p className="text-sm text-red-600 font-medium">Absent</p>
+                                <p className="text-2xl font-bold text-red-700">{summary.total_absent}</p>
+                                <p className="text-xs text-red-500">Days</p>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="py-8 text-center text-slate-500">
+                        No summary data available.
+                    </div>
+                )}
+
+                <DialogFooter>
+                    <Button onClick={onClose}>Close</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     );
 }

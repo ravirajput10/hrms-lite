@@ -1,4 +1,4 @@
-import { Users, CalendarCheck, UserCheck, UserX } from 'lucide-react';
+import { Users, CalendarCheck, UserCheck, UserX, Activity } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { useEmployees } from '../hooks/useEmployees';
 import { useAttendance } from '../hooks/useAttendance';
@@ -12,6 +12,11 @@ export function Dashboard() {
     const todayAttendance = attendanceData?.records.filter(r => r.date === today) || [];
     const presentToday = todayAttendance.filter(r => r.status === 'Present').length;
     const absentToday = todayAttendance.filter(r => r.status === 'Absent').length;
+
+    // Calculate overall attendance rate
+    const totalRecords = attendanceData?.records.length || 0;
+    const totalPresent = attendanceData?.records.filter(r => r.status === 'Present').length || 0;
+    const attendanceRate = totalRecords > 0 ? Math.round((totalPresent / totalRecords) * 100) : 0;
 
     const stats = [
         {
@@ -42,6 +47,13 @@ export function Dashboard() {
             color: 'from-purple-500 to-purple-600',
             bgColor: 'bg-purple-50',
         },
+        {
+            title: 'Attendance Rate',
+            value: `${attendanceRate}%`,
+            icon: Activity,
+            color: 'from-orange-500 to-orange-600',
+            bgColor: 'bg-orange-50',
+        },
     ];
 
     const isLoading = loadingEmployees || loadingAttendance;
@@ -65,7 +77,7 @@ export function Dashboard() {
                                     {stat.title}
                                 </CardTitle>
                                 <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                                    <Icon className={`h-5 w-5 bg-gradient-to-r ${stat.color} [background-clip:text] [-webkit-background-clip:text] text-transparent`} style={{ color: stat.color.includes('blue') ? '#3b82f6' : stat.color.includes('green') ? '#22c55e' : stat.color.includes('red') ? '#ef4444' : '#a855f7' }} />
+                                    <Icon className={`h-5 w-5 bg-gradient-to-r ${stat.color} [background-clip:text] [-webkit-background-clip:text] text-transparent`} style={{ color: stat.color.includes('blue') ? '#3b82f6' : stat.color.includes('green') ? '#22c55e' : stat.color.includes('red') ? '#ef4444' : stat.color.includes('purple') ? '#a855f7' : '#f97316' }} />
                                 </div>
                             </CardHeader>
                             <CardContent>
@@ -111,8 +123,8 @@ export function Dashboard() {
                                     </div>
                                     <span
                                         className={`px-3 py-1 rounded-full text-sm font-medium ${record.status === 'Present'
-                                                ? 'bg-green-100 text-green-700'
-                                                : 'bg-red-100 text-red-700'
+                                            ? 'bg-green-100 text-green-700'
+                                            : 'bg-red-100 text-red-700'
                                             }`}
                                     >
                                         {record.status}
